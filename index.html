@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Aurora Research Center</title>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+    font-family:"Courier New", monospace;
+    background:black;
+    overflow:hidden;
+}
+
+/* FUNDO */
+.background {
+    position:fixed;
+    inset:0;
+    background:url("https://i.imgur.com/UDBhtxc.png") center / cover no-repeat;
+    filter: grayscale(100%) contrast(130%);
+    z-index:0;
+}
+
+/* OVERLAY ESCURO */
+.overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.65);
+    z-index:1;
+}
+
+/* CENTRALIZAÇÃO */
+.center {
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:2;
+    text-align:center;
+}
+
+.center-content {
+    padding:30px 40px;
+    border:1px solid #333;
+    background: rgba(10,10,10,0.75);
+    color:#cfcfcf;
+}
+
+/* GLITCH */
+.glitch { animation:glitch 1.2s infinite; }
+@keyframes glitch {
+    0% { text-shadow:2px 0 red, -2px 0 cyan; }
+    20% { transform: translate(-1px,1px); }
+    40% { transform: translate(1px,-1px); }
+    60% { text-shadow:-2px 0 red, 2px 0 cyan; }
+    80% { transform: translate(1px,1px); }
+    100% { transform: translate(0,0); }
+}
+
+.status { color:#ff4d4d; }
+
+/* BOTÃO */
+#audio-btn {
+    margin-top:20px;
+    padding:10px 20px;
+    border:1px solid #555;
+    background:black;
+    color:#cfcfcf;
+    cursor:pointer;
+}
+#audio-btn:hover { color:red; border-color:red; }
+
+/* MENSAGEM ABAIXO DO BOTÃO */
+#warning-msg {
+    margin-top:15px;
+    font-size:14px;
+    color:#ff4d4d;
+}
+
+/* CONTADOR */
+#countdown {
+    font-size:120px;
+    font-weight:bold;
+    color:white;
+    display:none;
+}
+
+/* BLACKOUT */
+#blackout {
+    position:fixed;
+    inset:0;
+    background:black;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:10;
+    color:#cfcfcf;
+    text-align:center;
+    font-size:20px;
+    letter-spacing:2px;
+}
+
+/* CÓDIGOS BINÁRIO / MORSE */
+#codes {
+    position:fixed;
+    inset:0;
+    font-size:12px;
+    color:#00ff9c;
+    opacity:0.6;
+    pointer-events:none;
+    white-space:pre;
+    z-index:1;
+}
+
+/* VÍDEO FULLSCREEN PARA O 6 */
+#flash-video {
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:none;
+    z-index:11;
+    background:black;
+}
+
+/* IMAGEM PISCANTE PÓS-CONTAGEM */
+#flash-image {
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:none;
+    z-index:11;
+}
+</style>
+</head>
+
+<body>
+
+<div class="background"></div>
+<div class="overlay"></div>
+
+<div id="codes"></div>
+
+<div class="center">
+    <!-- CONTADOR -->
+    <div id="countdown" class="glitch">10</div>
+
+    <!-- TEXTO ORIGINAL -->
+    <div id="original-text" class="center-content glitch">
+        <p>ARQUIVO: AUR-███-LOG</p>
+        <p>STATUS: <span class="status">CORROMPIDO</span></p>
+        <br>
+        <p>LOCALIZAÇÃO: AURORA</p>
+        <p>ESTADO: [NULO]</p>
+
+        <button id="audio-btn">INICIAR SINAL</button>
+        <p id="warning-msg">Você está indo longe demais</p>
+    </div>
+</div>
+
+<div id="blackout">
+<pre class="glitch">
+LOCALIZAÇÃO : AURORA
+ESTADO      : NULL
+INCIDENTE   : 000666
+</pre>
+</div>
+
+<!-- VÍDEO DO 6 -->
+<video id="flash-video" src="https://i.imgur.com/hgpLaZV.mp4" type="video/mp4" muted></video>
+
+<!-- IMAGEM PISCANTE PÓS-CONTAGEM -->
+<img id="flash-image" src="https://i.imgur.com/rAXDONo.png" alt="flash">
+
+<!-- ÁUDIOS -->
+<audio id="ambient" loop>
+    <source src="ambient.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="secondary" loop>
+    <source src="secondary.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const audio = document.getElementById("ambient");
+const secondaryAudio = document.getElementById("secondary");
+const btn = document.getElementById("audio-btn");
+const countdown = document.getElementById("countdown");
+const originalText = document.getElementById("original-text");
+const blackout = document.getElementById("blackout");
+const flashVideo = document.getElementById("flash-video");
+const flashImage = document.getElementById("flash-image");
+const codes = document.getElementById("codes");
+
+let timerInterval = null;
+let time = 10;
+let flashingInterval = null;
+
+/* FRASES BINÁRIO / MORSE COM GLITCH */
+const phrases = [
+    "00001 00001 00001",
+    "... --- ...",
+    "ELE ESTÁ OUVINDO",
+    "O SOM DO XXXXX",
+    "Ω SUBJECT-666",
+    "NÃO RESPONDA",
+    "00000 11111 00000",
+    ".-- .... --- / .. ... / - .... . .-. .",
+    "ERRO ERRO ERRO ERRO ERRO"
+];
+
+/* INICIAR SINAL */
+btn.addEventListener("click", () => {
+    audio.volume = 0.4;
+    audio.play();
+    secondaryAudio.volume = 0.5;
+    secondaryAudio.play();
+
+    btn.style.display = "none";
+    originalText.style.display = "none";
+    countdown.style.display = "block";
+
+    startCountdown();
+});
+
+/* CONTADOR COM CORES E FLASH NO 6 (VÍDEO) */
+function startCountdown() {
+    time = 10;
+    countdown.textContent = time;
+    countdown.style.color = "white";
+
+    timerInterval = setInterval(() => {
+        time--;
+        countdown.textContent = time;
+
+        if (time <= 3) countdown.style.color = "red";
+
+        // VÍDEO DO 6 - APARECE UMA VEZ
+        if (time === 6) {
+            flashVideo.style.display = "block";
+            flashVideo.currentTime = 0;
+            flashVideo.play();
+            setTimeout(() => flashVideo.style.display = "none", 2000); // 2 segundos
+        }
+
+        if (time === 1) {
+            clearInterval(timerInterval);
+
+            // blackout
+            setTimeout(() => blackout.style.display = "flex", 600);
+
+            // volta a tela normal + inicia piscadas a cada 3s da imagem
+            setTimeout(() => {
+                blackout.style.display = "none";
+                countdown.style.display = "none";
+                originalText.style.display = "block";
+
+                startImageFlashing(); // piscadas contínuas pós-contagem
+            }, 4500);
+        }
+    }, 1000);
+}
+
+/* PISCAR IMAGEM A CADA 3 SEGUNDOS POST-CONTAGEM */
+function startImageFlashing() {
+    flashingInterval = setInterval(() => {
+        flashImage.style.display = "block";
+        setTimeout(() => flashImage.style.display = "none", 800);
+    }, 3000);
+}
+
+/* CÓDIGOS BINÁRIO / MORSE ALEATÓRIOS COM GLITCH */
+setInterval(() => {
+    let output = "";
+    for (let i = 0; i < 22; i++) {
+        output += phrases[Math.floor(Math.random() * phrases.length)] + "\n";
+    }
+    codes.textContent = output;
+}, 260);
+</script>
+
+</body>
+</html>
